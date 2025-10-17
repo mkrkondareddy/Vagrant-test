@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: flask
-        image: flask:latest  # Your custom image
+        image: 192.168.33.20:4000/myapp:latest  # Your custom image
         ports:
         - containerPort: 5000  # The port the container listens on
 ---
