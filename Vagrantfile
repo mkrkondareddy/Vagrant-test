@@ -12,13 +12,15 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
-  config.vm.box = "ubuntu/trusty64"
+  config.vm.box = "ubuntu/focal64"
+  config.vm.hostname = "vagrant-ubuntu"
+
     config.vm.provider "virtualbox" do |vb|
     # Display the VirtualBox GUI when booting the machine
     # vb.gui = true
   
     # Customize the amount of memory on the VM:
-    vb.memory = "1024"
+    vb.memory = "2048"
     vb.cpus = 2
   end
 
@@ -31,7 +33,8 @@ Vagrant.configure("2") do |config|
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # NOTE: This will enable public access to the opened port
-  config.vm.network "forwarded_port", guest: 80, host: 8000
+  # config.vm.network "forwarded_port", guest: 80, host: 8000
+  # config.vm.network "forwarded_port", guest: 80, host: 31111
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine and only allow access
@@ -40,7 +43,7 @@ Vagrant.configure("2") do |config|
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
-  # config.vm.network "private_network", ip: "192.168.33.10"
+  config.vm.network "private_network", ip: "192.168.33.20"
 
   # Create a public network, which generally matched to bridged network.
   # Bridged networks make the machine appear as another physical device on
@@ -59,7 +62,8 @@ Vagrant.configure("2") do |config|
     apt-get install -y curl
     apt-get install -y vim
     apt-get install -y wget
-    apt-get install -y nginx
+    apt-get install docker.io -y
+    #apt-get install -y nginx
     # apt-get install -y apache2
   SHELL
 
@@ -70,7 +74,8 @@ Vagrant.configure("2") do |config|
   # shown above.
   # config.vm.synced_folder ".", "/vagrant", disabled: true
   # config.vm.synced_folder ".", "/usr/share/nginx/html"  #### enable this line if you are using nginx server
-  # config.vm.synced_folder ".", "/var/www/html"
+  config.vm.synced_folder ".", "/var/www/html"
+  config.vm.synced_folder "./k3s", "/home/vagrant/shared"
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
@@ -90,8 +95,17 @@ Vagrant.configure("2") do |config|
   # Enable provisioning with a shell script. Additional provisioners such as
   # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
   # documentation for more information about their specific syntax and use.
+
+
   config.vm.provision "shell", run: "always", inline: <<-SHELL
-    sudo service nginx restart
-    echo "Files Synced and Server Restarted."
+    echo "Installing K3s."
+    sudo curl -sfL https://get.k3s.io | sh -
+    mkdir -p /home/vagrant/.kube
+    sudo cp /etc/rancher/k3s/k3s.yaml /home/vagrant/.kube/config
+    sudo chown vagrant:vagrant /home/vagrant/.kube/config
+    export KUBECONFIG=/home/vagrant/.kube/config
+    alias k='kubectl'
+
+    echo "K3s Installation Completed."
   SHELL
 end

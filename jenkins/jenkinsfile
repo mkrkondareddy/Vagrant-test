@@ -1,0 +1,60 @@
+pipeline {
+  agent any
+
+  environment {
+    REGISTRY = "192.168.33.20:4000"
+    IMAGE = "myapp"
+    WORKDIR = "/var/lib/jenkins/test"
+    KUBECONFIG = "/var/lib/jenkins/.kube/config"
+  }
+
+  stages {
+    stage('Prep') {
+      steps {
+        script {
+          sh "whoami"
+          sh "ls -la ${WORKDIR}"
+          sh "echo Using KUBECONFIG: ${KUBECONFIG}"
+        }
+      }
+    }
+
+    stage('Build') {
+      steps {
+        script {
+          // Build image and tag with BUILD_NUMBER
+          sh "docker build -t ${REGISTRY}/${IMAGE}:${BUILD_NUMBER} ${WORKDIR}"
+        }
+      }
+    }
+
+    stage('Push') {
+      steps {
+        script {
+          sh "docker push ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}"
+        }
+      }
+    }
+
+    stage('Deploy') {
+      steps {
+        script {
+          // Replace image tag in a copy of manifest and apply
+          sh "sed 's#${REGISTRY}/${IMAGE}:latest#${REGISTRY}/${IMAGE}:${BUILD_NUMBER}#g' ${WORKDIR}/deploy.yaml > /tmp/k8s-${BUILD_NUMBER}.yaml"
+          sh "KUBECONFIG=${KUBECONFIG} kubectl apply -f /tmp/k8s-${BUILD_NUMBER}.yaml"
+          sh "KUBECONFIG=${KUBECONFIG} kubectl rollout status deployment/myapp --timeout=60s"
+          sh "KUBECONFIG=${KUBECONFIG} kubectl get pods,svc -l app=myapp -o wide"
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "Deployed ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}"
+    }
+    failure {
+      echo "Pipeline failed. Check console output."
+    }
+  }
+}
