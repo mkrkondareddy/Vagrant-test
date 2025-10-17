@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
-  config.vm.box = "ubuntu/focal64"
+  config.vm.box = "ubuntu/jammy64"
   config.vm.hostname = "vagrant-ubuntu"
 
     config.vm.provider "virtualbox" do |vb|
@@ -20,7 +20,7 @@ Vagrant.configure("2") do |config|
     # vb.gui = true
   
     # Customize the amount of memory on the VM:
-    vb.memory = "2048"
+    vb.memory = "4096"
     vb.cpus = 2
   end
 
