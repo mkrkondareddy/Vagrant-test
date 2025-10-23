@@ -45,7 +45,10 @@ It provisions and configures all the essential tools required to **build, test, 
             
 
 
+Pre-req's
 
+1. you need to install virtual box to run Vagrant 
+2. then youc an run vagrant
 
 ---
 
@@ -171,3 +174,50 @@ Jenkins cannot run docker	Add jenkins user to docker group and restart Jenkins
 
 
 
+
+SIMPLE DEsign 
+
+
+             ┌──────────────────────────┐
+             │        Developer          │
+             │  Pushes code to GitHub    │
+             └────────────┬──────────────┘
+                          │
+                          ▼
+             ┌──────────────────────────┐
+             │        Jenkins CI/CD      │
+             │ (Running on Host VM)      │
+             │──────────────────────────│
+             │ 1️⃣ Checkout Code         │
+             │ 2️⃣ Build Docker Image    │
+             │ 3️⃣ Push/Tag Image        │
+             │ 4️⃣ Deploy via kubectl    │
+             └────────────┬──────────────┘
+                          │
+                          ▼
+             ┌──────────────────────────┐
+             │       Docker Engine       │
+             │ Builds & stores images    │
+             └────────────┬──────────────┘
+                          │
+                          ▼
+             ┌──────────────────────────┐
+             │         k3s Cluster       │
+             │ (Single Node Kubernetes)  │
+             │──────────────────────────│
+             │ Deployments, Services,    │
+             │ and Ingress for app       │
+             └────────────┬──────────────┘
+                          │
+                          ▼
+             ┌──────────────────────────┐
+             │        End User           │
+             │ Access app via NodePort   │
+             └──────────────────────────┘
+
+
+
+
+```bash
+pip install foobar
+```
